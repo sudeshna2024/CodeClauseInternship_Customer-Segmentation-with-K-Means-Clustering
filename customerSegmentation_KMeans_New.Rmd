@@ -1,0 +1,88 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Loading required libraries
+```{r}
+library(dplyr)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+```
+
+## Read the Dataset
+```{r}
+customer_data<-read.csv("E:/Data_science/SEM_II/Internship/customer_data.csv/Mall_Customers.csv")
+names(customer_data)
+str(customer_data)
+```
+## Rename some column names
+```{r}
+customer_data <- rename(customer_data, annual_income=Annual.Income..k..,spending_score=Spending.Score..1.100.)
+customer_data
+```
+##Summarise the data
+```{r}
+summary(customer_data)
+```
+
+
+#### Customer Segmentation with KMeans Clustering based on their purches Behavior ******************
+```{r}
+scale_customer_data<-scale(customer_data[,3:5])  ### apply scale for normalized the data
+set.seed(123)
+### no. of cluster = 4
+k_means1<-kmeans(scale_customer_data,4,nstart = 25)
+k_means1
+```
+```{r}
+set.seed(123)
+### no. of cluster = 5
+k_means2<-kmeans(scale_customer_data,5,nstart = 25)
+k_means2
+```
+
+
+```{r}
+fviz_cluster(k_means1,data = scale_customer_data)
+fviz_cluster(k_means1,data = scale_customer_data,choose.vars = c(1,2))
+```
+
+Now, I will use Elbow method to determine the optimal number of clusters to segment the mall customers purchase behavior because of Kmeans Clustering, the number of cluster is user input. So avoid this user input number of clustering we use Elbow method.
+```{r}
+fviz_nbclust(scale_customer_data,kmeans,method = "wss")
+```
+The plot of Elbow method shows that, 6 is the optimal number of clusters to segment the mall customers. Now, apply this cluster(6) value on KMeans Clustering Algorithm.
+```{r}
+set.seed(123)
+k_means3<-kmeans(scale_customer_data,6,nstart = 25)
+k_means3
+```
+```{r}
+k_means3_addCluster<-cbind(customer_data, cluster = k_means3$cluster)
+k_means3_addCluster
+
+```
+Based on Elbow method clustering value to segment customers purchase behavior with kmeans clustering algorithm I got good results compared with user input clustering value.
+
+If I not include the age of customers, then what will be the segmentation. So again I clustering the customers only based on Annual income and Spending score.
+
+```{r}
+customer_annualIncome_spndScore<-scale(customer_data[,4:5])  ### apply scale for normalized the data
+
+fviz_nbclust(customer_annualIncome_spndScore,kmeans,method = "wss")  ### Apply Elbow method
+```
+## Model Building
+```{r}
+k_means4<-kmeans(customer_annualIncome_spndScore,6,nstart = 25)
+k_means4
+```
+Not including customer age, only based on Annual income and Spending score, I get better result compare with previous clustering results.
+ 
+## Visualize the kmeans clustering result based on customers Annual Income and Spending Score
+```{r}
+fviz_cluster(k_means4,data = customer_annualIncome_spndScore)
+```
+Here I got six types of mall customer based on their purchase behavior.
+ 
